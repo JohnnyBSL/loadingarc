@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Arcane Networks</title>
+    <style>
+        @keyframes glow {
+            0% { 
+                filter: 
+                    drop-shadow(0 0 5px rgba(255, 40, 40, 0.5))
+                    hue-rotate(0deg);
+            }
+            50% { 
+                filter: 
+                    drop-shadow(0 0 15px rgba(255, 0, 0, 0.8))
+                    hue-rotate(10deg);
+            }
+            100% { 
+                filter: 
+                    drop-shadow(0 0 5px rgba(255, 40, 40, 0.5))
+                    hue-rotate(0deg);
+            }
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(45deg, rgba(20, 20, 20, 0.9), rgba(40, 0, 0, 0.95)), url('overlord.png');
+            background-size: cover;
+            background-position: center;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo {
+            width: 600px;
+            max-width: 80%;
+            animation: glow 5s infinite;
+        }
+
+        /* Rest des CSS bleibt gleich */
+        .loading-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.3);
+            backdrop-filter: blur(15px);
+            padding: 25px 40px;
+            z-index: 9999;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: -3px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #ff4444;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.6);
+            transition: width 0.5s ease;
+        }
+
+        .music-container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .music-controls {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 15px;
+        }
+
+        .music-btn {
+            background: none;
+            border: none;
+            cursor: default;
+            color: white;
+            font-size: 24px;
+            padding: 0;
+            margin: 0;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .music-btn:hover {
+            opacity: 1;
+        }
+
+        .song-progress {
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            margin: 10px 0;
+            border-radius: 2px;
+        }
+
+        .song-progress-fill {
+            height: 100%;
+            background: #ff4444;
+            width: 45%;
+            transition: width 0.1s linear;
+        }
+
+        .server-info {
+            max-width: 300px;
+        }
+
+        .song-title {
+            color: #ff4444;
+            margin: 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #ff4444;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+        }
+
+        p {
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="333.png" class="logo">
+    </div>
+
+    <div class="loading-container">
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+
+        <div class="server-info">
+            <h1>SCP: REALISM</h1>
+            <p>made with ♡ by arcanenetworks.de</p>
+        </div>
+
+        <div class="music-container">
+            <p class="song-title">Loading Music...</p>
+            <div class="song-progress">
+                <div class="song-progress-fill"></div>
+            </div>
+            <div class="music-controls">
+                <button class="music-btn">⏮</button>
+                <button class="music-btn">⏸</button>
+                <button class="music-btn">⏭</button>
+            </div>
+        </div>
+
+        <!-- Unsichtbarer Audio-Player -->
+        <audio id="audioPlayer" hidden></audio>
+    </div>
+
+    <script>
+        // Playlist mit Titeln und Dateipfaden
+        const playlist = [
+            {
+                title: "Washing Machine Hearts - Mitski",
+                file: "music/mitski.ogg"
+            },
+            {
+                title: "Spine - VeucroX",
+                file: "music/spine.ogg"
+            },
+            {
+                title: "Kompa - Frozy & Rarin",
+                file: "music/rarin.ogg"
+            },
+            {
+                title: "Undress Rehearsal - Timeflies",
+                file: "music/undress.ogg"
+            }
+        ];
+
+        // Audio-Elemente
+        const audioPlayer = document.getElementById('audioPlayer');
+        const songBar = document.querySelector('.song-progress-fill');
+        const songTitle = document.querySelector('.song-title');
+        let currentSongIndex = 0;
+        let previousSongIndex = -1;
+
+        // Zufälligen Song auswählen (außer dem zuletzt gespielten)
+        function getRandomSongIndex() {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * playlist.length);
+            } while (playlist.length > 1 && newIndex === previousSongIndex);
+            return newIndex;
+        }
+
+        // Ladebalken-Animation
+        let loadProgress = 0;
+        const loadBar = document.querySelector('.progress-fill');
+
+        function updateBars() {
+            if(loadProgress < 100) {
+                loadProgress += 0.5;
+                loadBar.style.width = loadProgress + '%';
+                requestAnimationFrame(updateBars);
+            }
+        }
+
+        // Musiksteuerung
+        function updateProgress() {
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            songBar.style.width = `${progress}%`;
+        }
+
+        function playNextSong() {
+            previousSongIndex = currentSongIndex;
+            currentSongIndex = getRandomSongIndex();
+            const song = playlist[currentSongIndex];
+            audioPlayer.src = song.file;
+            songTitle.textContent = song.title;
+            audioPlayer.play();
+        }
+
+        // Event Listener
+        audioPlayer.addEventListener('timeupdate', updateProgress);
+        audioPlayer.addEventListener('ended', playNextSong);
+
+        // Starte alles
+        document.addEventListener('DOMContentLoaded', () => {
+            // Starte Ladebalken
+            requestAnimationFrame(updateBars);
+            
+            // Starte Musikwiedergabe mit zufälligem Song
+            currentSongIndex = getRandomSongIndex();
+            const firstSong = playlist[currentSongIndex];
+            audioPlayer.src = firstSong.file;
+            audioPlayer.volume = 0.01; // Leiser stellen
+            songTitle.textContent = firstSong.title;
+            
+            // Versuche Autoplay
+            audioPlayer.play().catch(error => {
+                console.log("Autoplay blockiert, Klick erforderlich");
+            });
+        });
+    </script>
+</body>
+</html>
