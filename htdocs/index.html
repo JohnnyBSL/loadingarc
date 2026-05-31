@@ -1,3 +1,10 @@
+Hier ist dein kompletter Code. Ich habe die nötigen GMod-Funktionen direkt am Anfang deines `<script>`-Bereichs eingefügt.
+
+Dadurch verschwindet die graue Box unten rechts, und dein eigenes Design (die rote Leiste, Musik-Player etc.) bleibt exakt so, wie du es gebaut hast.
+
+Kopiere einfach diesen Code und ersetze damit deine aktuelle Datei:
+
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -47,7 +54,6 @@
             animation: glow 5s infinite;
         }
 
-        /* Rest des CSS bleibt gleich */
         .loading-container {
             position: fixed;
             bottom: 0;
@@ -175,11 +181,20 @@
             </div>
         </div>
 
-        <!-- Unsichtbarer Audio-Player -->
         <audio id="audioPlayer" hidden></audio>
     </div>
 
     <script>
+        // ==========================================
+        // GMOD HIDE DEFAULT LOADING BOX FUNCTIONS
+        // ==========================================
+        function GameDetails( servername, serverurl, mapname, maxplayers, steamid, gamemode, volume, language ) {}
+        function SetFilesTotal( total ) {}
+        function DownloadingFile( fileName ) {}
+        function SetStatusChanged( status ) {}
+        function SetFilesNeeded( needed ) {}
+        // ==========================================
+
         // Playlist mit Titeln und Dateipfaden
         const playlist = [
             {
@@ -266,5 +281,6 @@
         });
     </script>
 </body>
-
 </html>
+
+```
